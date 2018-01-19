@@ -1,58 +1,28 @@
-import numpy as np
 import os
-
-from keras.models import Model, model_from_json
-from keras.layers import Input
-from keras.layers.core import Lambda
-from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D
-from keras.layers.merge import concatenate
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras import backend as K
-from keras.optimizers import Adam, Nadam, SGD
-import threading
-import random
-
-import tensorflow as tf
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from dirs import ROOT_DIR
-from src.nn_var.unet import unet
-from src.encode_submit import create_submit
-from src.starting_point import get_id
-
-MODEL = unet.get_unet()
-
-IMG_ROWS = 128
-IMG_COLS = 128
-IMG_CHANNELS = 3
-MSK_CHANNELS = 1
-
-BATCH_SIZE = 32
-VALIDATION_SPLIT = 0.1
-EPOCHS = 1
-VERBOSE = 2
-
-seed = 42
-random.seed = seed
-np.random.seed = seed
 
 
 """
 UTIL METHODS
 """
-def save_model(model, model_type, batch_size, nb_epoch):
+
+
+def save_model(model, model_name):
+    model_save_path = os.path.join(ROOT_DIR, r'models')
+    if not os.path.exists(model_save_path):
+        os.mkdir(model_save_path)
+
     model_json = model.to_json()
-    model_name = model_type + "_" + batch_size + "batch_" + nb_epoch + "epoch"
-    json_file = open(os.path.join(ROOT_DIR, 'src/nn_var/unet') + '/' + model_name + ".json", "w")
+    json_file = open(os.path.join(model_save_path, model_name + ".json"), "w")
     json_file.write(model_json)
     json_file.close()
-    model.save_weights(os.path.join(ROOT_DIR, 'src/nn_var/unet') + '/' + model_name + ".h5")
+    model.save_weights(model_save_path + '/' + model_name + ".h5")
 
-    return model_name
 
-def get_callbacks(filepath, patience=2):
-   earlyStopping = EarlyStopping(patience=patience, verbose=VERBOSE)
-   msave = ModelCheckpoint(filepath, verbose=VERBOSE, save_best_only=True)
+def get_callbacks(filepath, verbose, patience=2):
+   earlyStopping = EarlyStopping(patience=patience, verbose=verbose)
+   msave = ModelCheckpoint(filepath, verbose=verbose, save_best_only=True)
 
    return [earlyStopping, msave]
 
@@ -60,21 +30,29 @@ def get_callbacks(filepath, patience=2):
 """
 FITTING MODEL
 """
-def fit_save(X_train, Y_train):
-    model = MODEL
 
-    callbacks = get_callbacks(filepath='model-dsbowl2018-1.h5', patience=10)
 
+def fit_save(model, model_name, X_train, Y_train, params):
+    callbacks_path = os.path.join(ROOT_DIR, r'callbacks')
+    if not os.path.exists(callbacks_path):
+        os.mkdir(callbacks_path)
+
+    filepath = os.path.join(callbacks_path, model_name + '_cal.h5')
+    # earlyStopping = EarlyStopping(patience=10, verbose=params['verbose'])
+    # msave = ModelCheckpoint('model_cal.h5', verbose=params['verbose'], save_best_only=True)
+    callbacks = get_callbacks(filepath=filepath, verbose=params['verbose'], patience=10)
+
+    print('-' * 30 + ' Fitting model... ' + '-' * 30)
     model.fit(X_train, Y_train,
-              validation_split=VALIDATION_SPLIT,
-              batch_size=BATCH_SIZE,
-              epochs=EPOCHS,
-              verbose=VERBOSE,
+              validation_split=params['val_split'],
+              batch_size=params['batch_size'],
+              epochs=params['epochs'],
+              verbose=params['verbose'],
               callbacks=callbacks)
 
-    print('-' * 30)
-    print('Saving model...')
-    print('-' * 30)
-    model_name = save_model(model, model_type="unet", batch_size=str(BATCH_SIZE), nb_epoch=str(EPOCHS))
+    print('-' * 30 + ' Saving model... ' + '-' * 30)
+    save_model(model=model, model_name=model_name)
 
-    return model_name
+
+if __name__ == '__main__':
+    pass

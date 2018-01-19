@@ -6,11 +6,9 @@ import pandas as pd
 from skimage.io import imread
 from skimage.transform import resize
 from skimage.morphology import label
-
-from src.starting_point import get_id, TEST_PATH
 from dirs import ROOT_DIR
+from src.utils.starting_point import TEST_PATH, IMG_CHANNELS
 
-IMG_CHANNELS = 3
 
 def predict_proc(test_ids, predict_file):
     sizes_test = []
@@ -48,7 +46,7 @@ def prob_to_rles(x, cutoff=0.5):
 
 
 def create_submit(test_ids, predict_file, model_name):
-    submit_path = os.path.join(ROOT_DIR, r'out_files\sub')
+    submit_path = os.path.join(ROOT_DIR, r'sub')
     if not os.path.exists(submit_path):
         os.mkdir(submit_path)
 
@@ -66,12 +64,10 @@ def create_submit(test_ids, predict_file, model_name):
     sub = pd.DataFrame()
     sub['ImageId'] = new_test_ids
     sub['EncodedPixels'] = pd.Series(rles).apply(lambda x: ' '.join(str(y) for y in x))
-
-    sub.to_csv(os.path.join(submit_path, r'/{}_sub.csv'.format(model_name)), index=False)
+    sub.to_csv(os.path.join(submit_path, r'{}_sub.csv'.format(model_name)), index=False)
 
 
 if __name__ == '__main__':
     pass
-    # train_ids, test_ids = get_id()
-    # predict_file = np.load(os.path.join(ROOT_DIR, r'out_files/predict/unet_32batch_100epoch_128_128/X_test.npy'))
+
 
