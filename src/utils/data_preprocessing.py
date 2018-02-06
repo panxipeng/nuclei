@@ -16,9 +16,6 @@ TRAIN_PATH = '../data/images/train'
 TEST_PATH = '../data/images/test'
 
 warnings.filterwarnings('ignore', category=UserWarning, module='skimage')
-seed = 42
-random.seed = seed
-np.random.seed = seed
 
 # Get train and test IDs
 def get_id():
