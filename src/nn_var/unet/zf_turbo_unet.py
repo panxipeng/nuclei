@@ -1,5 +1,4 @@
 # coding: utf-8
-__author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
 
 from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D
@@ -17,6 +16,7 @@ from keras import backend as K
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam, Nadam, SGD
 import tensorflow as tf
+from keras.losses import binary_crossentropy
 
 class ZF_Unet():
     def __init__(self, img_rows, img_cols, img_channels):
@@ -36,6 +36,16 @@ class ZF_Unet():
             prec.append(score)
 
         return K.mean(K.stack(prec), axis=0)
+
+    def dice_coef(self, y_true, y_pred):
+        smooth = 1.
+        y_true_f = K.flatten(y_true)
+        y_pred_f = K.flatten(y_pred)
+        intersection = K.sum(y_true_f * y_pred_f)
+        return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+    def bce_dice_loss(self, y_true, y_pred):
+        return 0.5 * binary_crossentropy(y_true, y_pred) - self.dice_coef(y_true, y_pred)
 
     def double_conv_layer(self, x, size, dropout, batch_norm):
         axis = 3
@@ -94,7 +104,8 @@ class ZF_Unet():
         model = Model(inputs, conv_final)
 
         adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        nadam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
-        model.compile(optimizer=adam, loss='binary_crossentropy', metrics=[self.mean_iou])
+        model.compile(optimizer=adam, loss=self.bce_dice_loss, metrics=[self.mean_iou])
 
         return model
