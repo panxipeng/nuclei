@@ -68,8 +68,8 @@ def show_images(images):
 
 
 if __name__ == '__main__':
-    tst_name = r'fe9adb627a6f45747c5a8223b671774791ededf9364f6544be487c540107fa4f'
-    preds_folder = r'zf_turbo_unet_gen-1_32-bs_100-ep_0.2-vs_split-ts_128_128_X_test'
+    tst_name = r'4f949bd8d914bbfa06f40d6a0e2b5b75c38bf53dbcbafc48c97f105bee4f8fac'
+    preds_folder = r'zf_turbo_unet_gen-1_15-bs_50-ep_0.2-vs_split-ts_128_128_X_test'
     IMG_CHANNELS = 3
 
     test_image = skimage.io.imread(os.path.join(ROOT_DIR, r'data/images/test/{}/images/{}.png'.format(tst_name, tst_name)))[:, :, :IMG_CHANNELS]

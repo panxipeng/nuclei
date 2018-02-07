@@ -5,12 +5,19 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 
 SEED = 7
+
 """
-UTIL METHODS
+                                UTIL METHODS
 """
 
 
 def save_m(model, model_name):
+    """
+    Save trained model and weights
+    :param model: Fitted model
+    :param model_name: Name of the model to save
+    :return: Nothing to return
+    """
     model_save_path = os.path.join(ROOT_DIR, r'models')
     if not os.path.exists(model_save_path):
         os.mkdir(model_save_path)
@@ -23,12 +30,22 @@ def save_m(model, model_name):
 
 
 def generator(xtr, xval, ytr, yval, batch_size):
+    """
+    Image generator function
+    :param xtr: Training set of images in np.ndarray
+    :param xval: Validation set of images in np.ndarray
+    :param ytr: Training masks in np.ndarray
+    :param yval: Validation masks in np.ndarray
+    :param batch_size: Batch size parameter from params['batch_size']
+    :return: Image generators for train and validation set of images
+    """
     data_gen_args = dict(horizontal_flip=True,
                          vertical_flip=True,
                          rotation_range=90.,
                          width_shift_range=0.1,
                          height_shift_range=0.1,
-                         zoom_range=0.1)
+                         zoom_range=0.1,
+                         fill_mode='reflect')
 
     image_datagen = ImageDataGenerator(**data_gen_args)
 
@@ -56,10 +73,17 @@ def generator(xtr, xval, ytr, yval, batch_size):
     return train_generator, val_generator
 
 def get_callbacks(filepath, verbose, patience=2):
-   earlyStopping = EarlyStopping('ac', patience=patience, verbose=verbose)
-   msave = ModelCheckpoint(filepath, verbose=verbose, save_best_only=True)
+    """
+    Callbacks function: set callbacks list
+    :param filepath: Path to save model checkpoint
+    :param verbose: Verbose from params['verbose']
+    :param patience: Amount of patient epochs before early stopping model fitting
+    :return: Callbacks list
+    """
+    earlyStopping = EarlyStopping(monitor='acc', patience=patience, verbose=verbose)
+    msave = ModelCheckpoint(filepath, verbose=verbose, save_best_only=True)
 
-   return [earlyStopping, msave]
+    return [earlyStopping, msave]
 
 
 """
@@ -68,7 +92,7 @@ def get_callbacks(filepath, verbose, patience=2):
 
 
 def fit_save(model, model_name, X_train, Y_train, params):
-    steps_per_epoch = 50
+    steps_per_epoch = params['steps_per_epoch']
 
     xtr, xval, ytr, yval = train_test_split(X_train, Y_train, test_size=0.1, random_state=7)
     train_generator, val_generator = generator(xtr, xval, ytr, yval, params['batch_size'])

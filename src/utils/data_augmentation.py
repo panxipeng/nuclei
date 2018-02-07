@@ -21,8 +21,9 @@ def read_train_image_labels(image_id):
     height, width, _ = image.shape
     labels = np.zeros((height, width, 1), dtype=np.bool)
     for id, mask_file in enumerate(masks):
-         mask_ = np.expand_dims(mask_file, axis=-1)
-         labels = np.maximum(labels, mask_)
+        mask_ = np.expand_dims(mask_file, axis=-1)
+        labels = np.maximum(labels, mask_)
+
 
     return image, labels
 
