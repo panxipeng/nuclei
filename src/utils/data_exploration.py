@@ -78,7 +78,9 @@ if __name__ == '__main__':
 
     X_train = np.load(os.path.join(ROOT_DIR, r'out_files/npy/128_128_split/X_train.npy'))
     Y_train = np.load(os.path.join(ROOT_DIR, r'out_files/npy/128_128_split/Y_train.npy'))
+    X_test = np.load(os.path.join(ROOT_DIR, r'out_files/npy/128_128_split/X_test.npy'))
     random_image = random.randint(0, X_train.shape[0])
+    random_image_tst = random.randint(0, X_test.shape[0])
 
     # X_train = X_train.astype('float32')
     # Y_train = Y_train.astype('float32')
@@ -88,7 +90,7 @@ if __name__ == '__main__':
     X_train = X_train.astype('uint8')
     Y_train = Y_train.astype('uint8')
 
-    images = [test_image, test_mask, test_bin_mask]
+    images = [X_train[random_image], Y_train[random_image], X_test[random_image_tst]]
     print(np.max(test_image), np.min(test_image))
     print(np.max(test_mask), np.min(test_mask))
     print(np.max(test_bin_mask), np.min(test_bin_mask))

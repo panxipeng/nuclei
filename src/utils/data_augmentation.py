@@ -1,10 +1,12 @@
 import numpy as np # linear algebra
 import random
 import skimage.io
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import cv2
 import os
 from dirs import ROOT_DIR
+from src.utils import data_exploration as de
 
 SPLIT_SIZE = 128
 OVERLAP = 40
@@ -42,6 +44,15 @@ def read_test_image(image_id):
 
 
 def calculate_split_parameters(width, height, split_size=128, overlap=40):
+    """
+    Function calculates minimal shape of image, which divides by split size without remainder, and
+    amount of small images (with size split_size x split_size) which we could get from the source image
+    :param width: Width of the source image
+    :param height: Height of the source image
+    :param split_size: Size of the small image
+    :param overlap: Overlapping pixels amount
+    :return: new_shape, images_amount
+    """
     new_shape = []
     images_amount = []
     for idx, x in enumerate([width, height]):
@@ -59,6 +70,15 @@ def calculate_split_parameters(width, height, split_size=128, overlap=40):
 
 
 def split(image, labels=None, split_size=SPLIT_SIZE, overlap=OVERLAP):
+    """
+    Function to split images into bunch of smaller images with size (split_size x split_size)
+    :param image: Input image
+    :param labels: Input mask (if needed)
+    :param split_size: Size of the small images (important: split_size % 16 == 0)
+    :param overlap: Overlapping pixels amount
+    :return: splited image and labels (if needed)
+    """
+
     # Calculate new shape of image
     new_shape, images_amount = calculate_split_parameters(image.shape[0], image.shape[1], split_size, overlap)
 
@@ -244,115 +264,11 @@ def normalization(image, grid_size=8):
 
     return normalized_image
 
-
-def show_image(image, labels=None):
+def show_images(images):
     fig = plt.figure(1, figsize=(10, 10))
-
-    if labels is None:
-        fig.add_subplot(3, 2, 1).imshow(image)
-
-        split_image = split(image)
-        fig.add_subplot(3, 2, 3).imshow(split_image[5])
-
-        rot_image = rotate(image, angle=90)
-        fig.add_subplot(3, 2, 5).imshow(rot_image)
-
-    else:
-        fig.add_subplot(4, 2, 1).imshow(image)
-        fig.add_subplot(4, 2, 2).imshow(labels[:, :, 0])
-
-        split_image, split_labels = split(image, labels)
-        fig.add_subplot(4, 2, 3).imshow(split_image[0, :, :, 0])
-        fig.add_subplot(4, 2, 4).imshow(split_labels[0, :, :, 0])
-
-        rot_image, rot_labels = rotate(image, labels, angle=90)
-        fig.add_subplot(4, 2, 5).imshow(rot_image)
-        fig.add_subplot(4, 2, 6).imshow(rot_labels[:, :, 0])
-
-        normalized_image = normalization(image)
-        fig.add_subplot(4, 2, 7).imshow(normalized_image)
-        fig.add_subplot(4, 2, 8).imshow(labels[:, :, 0])
-
+    for i, image in enumerate(images):
+        ax = fig.add_subplot(1, 2, i+1)
+        ax.imshow(np.squeeze(image))
     plt.show()
 
-
-def show_images(ids):
-    plt_cols = len(ids) // 2
-
-    fig = plt.figure(1, figsize=(10, 10))
-    for i, id in enumerate(ids):
-        ax = fig.add_subplot(plt_cols, 4, i*2 + 1)
-        img, labels = read_train_image_labels(id)
-        normalized_image = normalization(img)
-        # print(normalized_image.shape)
-        ax.imshow(normalized_image)
-
-        split_image, split_labels = split(img, labels)
-        # ax.imshow(split_image[6])
-
-        merge_image = merge(img, split_image)
-        ay = fig.add_subplot(plt_cols, 4, i*2 + 2)
-        ay.imshow(merge_image)
-
-    plt.show()
-
-
-if __name__ == '__main__':
-    # train_ids, test_ids = de.get_id()
-    # trn_image, labels = read_train_image_labels(train_ids[0])
-    # tst_image = read_test_image(test_ids[12])
-    # split_tst = split(tst_image)
-    # merge_tst = merge(tst_image, split_tst)
-
-    X_train = np.load(os.path.join(ROOT_DIR,
-    r'out_files/npy/predict/zf_turbo_unet_1-val_32-bs_100-ep_0.2-vs_splited-ts_128_128_X_test/0114f484a16c152baa2d82fdd43740880a762c93f436c8988ac461c5c9dbe7d5.npy'))
-    Y_train = np.load(os.path.join(ROOT_DIR,
-    r'out_files/npy/predict/zf_turbo_unet_1-val_32-bs_100-ep_0.2-vs_splited-ts_128_128_X_test/4be73d68f433869188fe5e7f09c7f681ed51003da6aa5d19ce368726d8e271ee.npy'))
-
-    print(X_train.shape)
-
-    random_image = random.randint(0, X_train.shape[0])
-    fig = plt.figure(1, figsize=(10, 10))
-    ax = fig.add_subplot(1, 2, 1)
-    ax.imshow(np.squeeze(X_train))
-    ay = fig.add_subplot(1, 2, 2)
-    ay.imshow(np.squeeze(Y_train))
-    plt.show()
-
-    # show_image(tst_image)
-    # show_image(trn_image, labels)
-    # # rot_image, rot_labels = rotate(trn_image, labels, angle=90)
-    #
-    # random_image_ids = random.sample(train_ids, 8)
-    # show_images(random_image_ids)
-
-    # X_train = np.load(os.path.join(ROOT_DIR, r'out_files/npy/128_128_all_train/128_128_X_train.npy'))
-    # Y_train = np.load(os.path.join(ROOT_DIR, r'out_files/npy/128_128_all_train/128_128_Y_train.npy'))
-    #
-    # print(X_train.shape)
-    # print(Y_train.shape)
-    #
-    # random_image = random.randint(0, X_train.shape[0])
-    #
-    # fig = plt.figure(1, figsize=(10, 10))
-    # ax = fig.add_subplot(1, 2, 1)
-    # ax.imshow(X_train[random_image, :, :, 0])
-    # ay = fig.add_subplot(1, 2, 2)
-    # ay.imshow(Y_train[random_image, :, :, 0])
-    # plt.show()
-
-    # ids = []
-    # for idx in range(Y_train.shape[0]):
-    #     if np.mean(Y_train[idx]) == 0:
-    #         ids.append(idx)
-    #
-    # print(ids)
-    # new_X_train = np.delete(X_train, ids, axis=0)
-    # new_Y_train = np.delete(Y_train, ids, axis=0)
-    #
-    # print(new_X_train.shape)
-    # print(new_Y_train.shape)
-    #
-    # np.save(r'E:\Programming\ML Competitions\nuclei\out_files\npy\128_128_all_train\128_128_X_train_new.npy', new_X_train)
-    # np.save(r'E:\Programming\ML Competitions\nuclei\out_files\npy\128_128_all_train\128_128_Y_train_new.npy', new_Y_train)
 
