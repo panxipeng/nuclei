@@ -1,7 +1,8 @@
 import numpy as np
 import os
 
-from dirs import ROOT_DIR
+from dirs import ROOT_DIR, make_dir
+from tqdm import tqdm
 from src.utils import data_exploration as de
 from src.utils import data_augmentation as da
 
@@ -9,9 +10,8 @@ from src.utils import data_augmentation as da
 def make_train_npy(train_ids, save_dir):
     images_to_concatenate = []
     labels_to_concatenate = []
-    for id in train_ids:
+    for id in tqdm(train_ids, total=len(train_ids)):
         image, labels = da.read_train_image_labels(id)
-        # normalized_image = da.normalization(image)
         split_image, split_labels = da.split(image, labels)
         images_to_concatenate.append(split_image)
         labels_to_concatenate.append(split_labels)
@@ -29,7 +29,7 @@ def make_train_npy(train_ids, save_dir):
 
 def make_test_npy(test_ids, save_dir):
     images_to_concatenate = []
-    for id in test_ids:
+    for id in tqdm(test_ids, total=len(test_ids)):
         image = da.read_test_image(id)
         split_image = da.split(image)
         images_to_concatenate.append(split_image)
@@ -45,8 +45,10 @@ def make_test_npy(test_ids, save_dir):
 
 if __name__ == '__main__':
     train_ids, test_ids = de.get_id()
-    save_dir = os.path.join(ROOT_DIR, r'out_files/npy')
+
+    save_dir = make_dir(r'out_files/npy')
     make_train_npy(train_ids, save_dir)
-    # make_test_npy(test_ids, save_dir)
+    make_test_npy(test_ids, save_dir)
+
 
 
