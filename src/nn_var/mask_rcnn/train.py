@@ -192,7 +192,7 @@ if __name__ == "__main__":
         'init_with': 'coco',  # imagenet, coco, last or path
         'path_to_weights_for_train': 'src/nn_var/mask_rcnn/logs/cell20180302T1515/mask_rcnn_cell_0026.h5',
         'layers': 'heads',  # heads or all
-        'predict_type': 'val',  # test or val
+        'predict_type': 'test',  # test or val
         'epoch_for_predict': '26',
         'path_to_weights_for_predict': 'src/nn_var/mask_rcnn/logs/cell20180302T1515/mask_rcnn_cell_0026.h5'
     }
